@@ -8,12 +8,12 @@ import { saveGameToStorage, resetGameStorage } from "./utils/storage/index.js";
 import "./App.css";
 
 function App() {
-  const [board, setBoard] = useState(() => {
+  const [board, setBoard] = useState<string[]>(() => {
     const boardFromStorage = window.localStorage.getItem("board");
     if (boardFromStorage) return JSON.parse(boardFromStorage);
     return Array(9).fill(null);
   });
-  const [turn, setTurn] = useState(() => {
+  const [turn, setTurn] = useState<string>(() => {
     const turnFromStorage = window.localStorage.getItem("turn");
     return turnFromStorage ?? Turn.x;
   });
@@ -31,6 +31,18 @@ function App() {
     newBoard[index] = turn;
     setBoard(newBoard);
 
+    const winner = checkWinner(newBoard);
+    if (winner) {
+      setGameState(GameState.WON);
+      confetti();
+      resetGameStorage();
+      return;
+    } else if (checkEndGame(newBoard)) {
+      setGameState(GameState.DRAW);
+      resetGameStorage();
+      return;
+    }
+
     const newTurn = turn === Turn.x ? Turn.o : Turn.x;
     setTurn(newTurn);
 
@@ -38,16 +50,6 @@ function App() {
       board: newBoard,
       turn: newTurn,
     });
-
-    const winner = checkWinner(newBoard);
-    if (winner) {
-      setGameState(GameState.WON);
-      confetti();
-      resetGameStorage();
-    } else if (checkEndGame(newBoard)) {
-      setGameState(GameState.DRAW);
-      resetGameStorage();
-    }
   };
 
   const handleReset = () => {
@@ -60,7 +62,7 @@ function App() {
     <main className="board">
       <h1>Tic Tac Toe</h1>
       <section className="game">
-        {board.map((item, index) => (
+        {board.map((item: string, index: number) => (
           <Square index={index} key={index} updateBoard={updateBoard}>
             <span className="cell__content">{item}</span>
           </Square>
